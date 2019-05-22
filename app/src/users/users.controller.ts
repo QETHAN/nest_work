@@ -5,6 +5,7 @@ import {
   Put,
   Delete,
   Param,
+  Body,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
@@ -12,43 +13,40 @@ import { User } from './interfaces/user.interface';
 import { UsersService } from './services/users.service';
 import { ApiException } from '../common/exceptions/api.exception';
 import { ApiErrorCode } from '../common/enums/api-error-code.enum';
+import { UserIdPipe } from './pipes/user-id.pipe';
+import { CreateUserDto } from './dtos/create-user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  async findAll(): Promise<User[]> {
-    return await this.usersService.findAll();
-  }
+    async findAll(): Promise<User[]> {
 
-  @Get(':id')
-  async findOne(@Param() params): Promise<User> {
-    let id = parseInt(params.id);
-
-    if (isNaN(id) || typeof id !== 'number' || id <= 0) {
-      // throw new HttpException('用户编号错误', HttpStatus.BAD_REQUEST);
-      throw new ApiException(
-        '用户ID无效',
-        ApiErrorCode.USER_ID_INVALID,
-        HttpStatus.BAD_REQUEST,
-      );
+        return await this.usersService.findAll();
     }
-    return this.usersService.findOne(params.id);
-  }
 
-  @Post()
-  async create() {
-    return await this.usersService.create();
-  }
+    @Get(':id')
+    async findOne(@Param('id', new UserIdPipe()) id): Promise<User> {
 
-  @Put()
-  async edit() {
-    return await this.usersService.edit();
-  }
+        return await this.usersService.findOne(id);
+    }
 
-  @Delete()
-  async remove() {
-    return await this.usersService.remove();
-  }
+    @Post()
+    async create(@Body() user: CreateUserDto): Promise<User> {
+
+        return await this.usersService.create(user);
+    }
+
+    @Put()
+    async edit(@Body() user: CreateUserDto): Promise<User> {
+
+        return await this.usersService.edit(user);
+    }
+
+    @Delete(':id')
+    async remove(@Param('id', new UserIdPipe()) id): Promise<boolean> {
+
+        return await this.usersService.remove(id);
+    }
 }
